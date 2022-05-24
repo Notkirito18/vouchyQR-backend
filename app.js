@@ -12,6 +12,7 @@ const guests = require("./routes/guests");
 const users = require("./routes/users");
 const auth = require("./routes/auth");
 const records = require("./routes/records");
+const contact = require("./routes/contactEmail");
 
 //*middlewares
 //require the header "key" to authorize the request
@@ -42,6 +43,7 @@ app.use("/auth", authorize, auth);
 app.use("/api/users", authorize, users);
 app.use("/api/guests", authorize, verifyToken, userIdVerify, guests);
 app.use("/api/records", authorize, verifyToken, userIdVerify, records);
+app.use("/contact", authorize, contact);
 
 // serving the frontend
 //TODO serve frontend app when deploying
