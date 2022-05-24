@@ -13,9 +13,12 @@ const users = require("./routes/users");
 const auth = require("./routes/auth");
 const records = require("./routes/records");
 
-//middlewares
+//*middlewares
+//require the header "key" to authorize the request
 const authorize = require("./middleware/authorization");
+//require login ("auth-token" header) to authorize the request
 const verifyToken = require("./middleware/verifyToken");
+//require a valid userId header to authorize the request
 const userIdVerify = require("./middleware/userIdVerify");
 
 const notFound = require("./middleware/not-found");
