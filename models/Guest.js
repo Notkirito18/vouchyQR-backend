@@ -21,7 +21,7 @@ const GuestSchema = new mongoose.Schema({
     type: [voucher.schema],
     required: true,
   },
-  userId: {
+  userDataId: {
     type: String,
     required: true,
   },

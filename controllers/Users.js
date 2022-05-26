@@ -7,33 +7,50 @@ const jwt = require("jsonwebtoken");
 //* add item to database
 //* in this case this is registering a user
 const createUser = asyncWrapper(async (req, res) => {
-  // authorization check
-  if (req.headers.key !== process.env.API_KEY) {
-    res.status(401).json({ msg: "access unauthorized" });
+  // user creation
+  const user = new User.model(req.body);
+  if (req.body.admin) {
+    user.userDataId = user._id;
   } else {
-    // validation
-    const error = userValidation(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+    if (!req.body.userDataId) {
+      return res
+        .status(400)
+        .json({ error: "none admin users must have a userDataId" });
     }
-
-    //checking if email already exist
-    const emailExist = await User.model.findOne({ email: req.body.email });
-    if (emailExist) {
-      return res.status(400).json({ error: "email already exist" });
-    }
-
-    // password hashing
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-    // user creation
-    const user = new User.model({ ...req.body, password: hashedPassword });
-
-    // response
-    const savedUser = await user.save();
-    res.status(201).json({ user: savedUser });
   }
+  // validation
+  const error = userValidation(user);
+  if (error) {
+    return res.status(400).json({ ValidationError: error.details[0].message });
+  }
+
+  //checking if email already exist
+  const emailExist = await User.model.findOne({ email: req.body.email });
+  if (emailExist) {
+    return res.status(400).json({ error: "email already exist" });
+  }
+
+  // password hashing
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(req.body.password, salt);
+  user.password = hashedPassword;
+
+  const savedUser = await user.save();
+
+  // create and assign token
+  const token = jwt.sign({ _id: savedUser._id }, process.env.TOKEN_KEY, {
+    expiresIn: 3600,
+  });
+  res.header("authToken", token);
+  res.header("expires-in", 3600);
+  res.header("Access-Control-Expose-Headers", ["authToken", "expires-in"]);
+
+  // response
+  res.status(201).json({
+    email: savedUser.email,
+    userId: savedUser._id,
+    userDataId: savedUser.userDataId,
+  });
 });
 
 //* userlogin
@@ -47,7 +64,7 @@ const loginUser = asyncWrapper(async (req, res) => {
   //checking if email already exist
   const loggedInUser = await User.model.findOne({ email: req.body.email });
   if (!loggedInUser) {
-    return res.status(403).json({ error: "Email or password is wrong" });
+    return res.status(403).json({ error: "-Email- or password is wrong" });
   }
   //cheking if password is correct
   const validPass = await bcrypt.compare(
@@ -55,18 +72,24 @@ const loginUser = asyncWrapper(async (req, res) => {
     loggedInUser.password
   );
   if (!validPass) {
-    return res.status(403).json({ error: "Email or password is wrong" });
+    return res.status(403).json({ error: "Email or -password- is wrong" });
   }
 
   // create and assign token
   const token = jwt.sign({ _id: loggedInUser._id }, process.env.TOKEN_KEY, {
     expiresIn: 3600,
   });
-  res.header("auth-token", token);
-  res.header("auth-token-expires-in", 3600);
+  res.header("authToken", token);
+  res.header("expires-in", 3600);
+  res.header("Access-Control-Expose-Headers", ["authToken", "expires-in"]);
 
   // response
-  res.status(200).json({ user: loggedInUser });
+  res.status(200).json({
+    email: loggedInUser.email,
+    _id: loggedInUser._id,
+    admin: loggedInUser.admin,
+    userDataId: loggedInUser.userDataId,
+  });
 });
 
 //* getting all the data operation

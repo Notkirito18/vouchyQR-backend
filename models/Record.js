@@ -13,10 +13,13 @@ const RecordSchema = new mongoose.Schema({
   guestId: {
     type: String,
   },
+  guestName: {
+    type: String,
+  },
   voucherId: {
     type: String,
   },
-  userId: {
+  userDataId: {
     type: String,
     required: true,
   },

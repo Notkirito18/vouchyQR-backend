@@ -17,7 +17,7 @@ const contact = require("./routes/contactEmail");
 //*middlewares
 //require the header "key" to authorize the request
 const authorize = require("./middleware/authorization");
-//require login ("auth-token" header) to authorize the request
+//require login ("authToken" header) to authorize the request
 const verifyToken = require("./middleware/verifyToken");
 //require a valid userId header to authorize the request
 const userIdVerify = require("./middleware/userIdVerify");
@@ -28,7 +28,7 @@ const errorHandlerMiddleware = require("./middleware/error-handler");
 const corsOpts = {
   origin: "*",
   methods: ["GET", "POST", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "key"],
+  allowedHeaders: ["Content-Type", "key", "authToken", "userDataId"],
 };
 app.use(cors(corsOpts));
 app.use(bodyParser.json({ limit: "50mb" }));

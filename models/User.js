@@ -1,5 +1,5 @@
+const { string } = require("joi");
 const mongoose = require("mongoose");
-const UserData = require("./submodels/UserData");
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -13,6 +13,14 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+  },
+  admin: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  userDataId: {
+    type: String,
   },
 });
 

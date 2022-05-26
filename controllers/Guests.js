@@ -8,7 +8,7 @@ const { json } = require("express");
 
 const getAllGuests = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userId = req.header("userDataId");
 
   //response with only the guests that have the userId
   const guests = await Guest.model.find(req.query);
@@ -23,11 +23,11 @@ const getAllGuests = asyncWrapper(async (req, res) => {
 
 const createGuest = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userDataId = req.header("userDataId");
 
   // updating guest object with userId and vouchers holderId
   const guest = new Guest.model(req.body);
-  guest.userId = userId;
+  guest.userDataId = userDataId;
   for (let i = 0; i < guest.vouchersLis.length; i++) {
     guest.vouchersLis[i].holderId = guest._id;
   }
@@ -40,19 +40,19 @@ const createGuest = asyncWrapper(async (req, res) => {
 
   //creating the guest and responding
   const guestCreated = await Guest.model.create(guest);
-  res.status(201).json({ guestCreated });
+  res.status(201).json({ guest: guestCreated });
 });
 
 //* getting singel item in database operation
 const getGuest = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userId = req.header("userDataId");
 
   //getting guest
   const _id = req.params.id;
   const guest = await Guest.model.findOne({ _id });
   // guest with _id doesn't exist or it exist but belongs to different user
-  if (!guest || guest.userId != userId)
+  if (!guest || guest.userDataId != userId)
     return res.status(400).json({ error: "No data matches the id : " + _id });
 
   // response
@@ -62,21 +62,25 @@ const getGuest = asyncWrapper(async (req, res) => {
 //* updating singel item in database operation
 const updateGuest = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
-
-  //validating newGuest data
-  const newGuest = req.body;
-  const error = guestValidation(newGuest);
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
-  }
+  const userDataId = req.header("userDataId");
 
   //getting guest to update
   const _id = req.params.id;
   const guest = await Guest.model.findOne({ _id });
   // guest with _id doesn't exist or it exist but belongs to different user
-  if (!guest || guest.userId != userId)
+  if (!guest || guest.userDataId != userDataId)
     return res.status(400).json({ error: "No data matches the id : " + _id });
+
+  //validating newGuest data
+  const newGuest = new Guest.model({ ...req.body, _id });
+  newGuest.userDataId = userDataId;
+  for (let i = 0; i < newGuest.vouchersLis.length; i++) {
+    newGuest.vouchersLis[i].holderId = _id;
+  }
+  const error = guestValidation(newGuest);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
 
   // updating the guest and responding
   const guestUpdated = await Guest.model.findOneAndUpdate({ _id }, newGuest, {
@@ -93,13 +97,13 @@ const updateGuest = asyncWrapper(async (req, res) => {
 //* delete singel item in database operation
 const deleteGuest = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userId = req.header("userDataId");
 
   //getting guest
   const _id = req.params.id;
   const guest = await Guest.model.findOne({ _id });
   // guest with _id doesn't exist or it exist but belongs to different user
-  if (!guest || guest.userId != userId)
+  if (!guest || guest.userDataId != userId)
     return res.status(400).json({ error: "No data matches the id : " + _id });
 
   //deleting and responding

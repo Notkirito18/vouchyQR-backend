@@ -7,7 +7,7 @@ const { recordValidation } = require("../validation");
 
 const getAllRecords = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userId = req.header("userDataId");
 
   //response with only the records that have the userId
   const records = await Record.model.find(req.query);
@@ -21,11 +21,11 @@ const getAllRecords = asyncWrapper(async (req, res) => {
 //* add item to database
 const createRecord = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userId = req.header("userDataId");
 
   // updating record object with userId
   const record = new Record.model(req.body);
-  record.userId = userId;
+  record.userDataId = userId;
 
   //validation
   const error = recordValidation(record);
@@ -34,19 +34,19 @@ const createRecord = asyncWrapper(async (req, res) => {
   }
   //creating the record and responding
   const recordCreated = await Record.model.create(record);
-  res.status(201).json({ recordCreated });
+  res.status(201).json({ record: recordCreated });
 });
 
 //* getting singel item in database operation
 const getRecord = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userId = req.header("userDataId");
 
   //getting record
   const _id = req.params.id;
   const record = await Record.model.findOne({ _id });
   // record with _id doesn't exist or it exist but belongs to different user
-  if (!record || record.userId != userId)
+  if (!record || record.userDataId != userId)
     return res.status(400).json({ error: "No data matches the id : " + _id });
 
   // response
@@ -56,21 +56,22 @@ const getRecord = asyncWrapper(async (req, res) => {
 //* updating singel item in database operation
 const updateRecord = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userDataId = req.header("userDataId");
+
+  //getting record to update
+  const _id = req.params.id;
+  const record = await Record.model.findOne({ _id });
+  // record with _id doesn't exist or it exist but belongs to different user
+  if (!record || record.userDataId != userDataId)
+    return res.status(400).json({ error: "No data matches the id : " + _id });
 
   //validating newRecord data
-  const newRecord = req.body;
+  const newRecord = new Record.model({ ...req.body, _id });
+  newRecord.userDataId = userDataId;
   const error = recordValidation(newRecord);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
-
-  //getting record to update
-  const _id = req.params.id;
-  const record = await Record.modGuestel.findOne({ _id });
-  // record with _id doesn't exist or it exist but belongs to different user
-  if (!record || record.userId != userId)
-    return res.status(400).json({ error: "No data matches the id : " + _id });
 
   // updating the record and responding
   const recordUpdated = await Record.model.findOneAndUpdate(
@@ -91,13 +92,13 @@ const updateRecord = asyncWrapper(async (req, res) => {
 //* delete singel item in database operation
 const deleteRecord = asyncWrapper(async (req, res) => {
   // getting userId
-  const userId = req.header("userId");
+  const userId = req.header("userDataId");
 
   //getting record
   const _id = req.params.id;
   const record = await Record.model.findOne({ _id });
   // record with _id doesn't exist or it exist but belongs to different user
-  if (!record || record.userId != userId)
+  if (!record || record.userDataId != userId)
     return res.status(400).json({ error: "No data matches the id : " + _id });
 
   //deleting and responding
@@ -110,11 +111,38 @@ const deleteRecord = asyncWrapper(async (req, res) => {
     return res.status(424).json({ error: "record was not deleted" });
   }
 });
+const deleteManyRecords = asyncWrapper(async (req, res) => {
+  //getting records
+  const ids = req.body.ids;
 
+  //deleting and responding
+  try {
+    const recordDelete = await Record.model.deleteMany(
+      {
+        _id: {
+          $in: ids,
+        },
+      },
+      (err, result) => {
+        if (err) {
+          res.status(500).json({ msg: err.message });
+        } else {
+          res.status(200).json({
+            ids: ids,
+            msg: result.deletedCount + " records deleted",
+          });
+        }
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+});
 module.exports = {
   getAllRecords,
   createRecord,
   getRecord,
   updateRecord,
   deleteRecord,
+  deleteManyRecords,
 };

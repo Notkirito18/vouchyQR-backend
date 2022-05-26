@@ -18,7 +18,9 @@ const userValidation = (user) => {
         });
         return errors;
       }),
-  });
+    admin: Joi.boolean().required(),
+    userDataId: Joi.objectId().required(),
+  }).unknown();
 
   return schema.validate(user).error;
 };
@@ -60,7 +62,7 @@ const guestValidation = (guest) => {
     type: Joi.string().required(),
     validUntill: Joi.date().required(),
     vouchersLis: Joi.array().items(voucherSchema).required(),
-    userId: Joi.objectId().required(),
+    userDataId: Joi.objectId().required(),
     createdDate: Joi.date().required().default(new Date()),
   }).unknown();
 
@@ -73,8 +75,9 @@ const recordValidation = (record) => {
     date: Joi.date().required(),
     type: Joi.string().required(),
     guestId: Joi.objectId().required(),
+    guestName: Joi.string().required(),
     voucherId: Joi.objectId(),
-    userId: Joi.objectId().required(),
+    userDataId: Joi.objectId().required(),
   }).unknown();
 
   return recordSchema.validate(record).error;
