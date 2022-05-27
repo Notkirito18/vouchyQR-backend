@@ -13,7 +13,7 @@ const getAllRecords = asyncWrapper(async (req, res) => {
   const records = await Record.model.find(req.query);
   res.status(200).json({
     records: records.filter((item) => {
-      return (item.userId = userId);
+      return item.userDataId == userId;
     }),
   });
 });

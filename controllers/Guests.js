@@ -14,7 +14,7 @@ const getAllGuests = asyncWrapper(async (req, res) => {
   const guests = await Guest.model.find(req.query);
   res.status(200).json({
     guests: guests.filter((item) => {
-      return (item.userId = userId);
+      return item.userDataId == userId;
     }),
   });
 });
