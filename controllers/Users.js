@@ -15,19 +15,19 @@ const createUser = asyncWrapper(async (req, res) => {
     if (!req.body.userDataId) {
       return res
         .status(400)
-        .json({ error: "none admin users must have a userDataId" });
+        .json({ msg: "none admin users must have a userDataId" });
     }
   }
   // validation
   const error = userValidation(user);
   if (error) {
-    return res.status(400).json({ ValidationError: error.details[0].message });
+    return res.status(400).json({ msg: error.details[0].message });
   }
 
   //checking if email already exist
   const emailExist = await User.model.findOne({ email: req.body.email });
   if (emailExist) {
-    return res.status(400).json({ error: "email already exist" });
+    return res.status(400).json({ msg: "email already exist" });
   }
 
   // password hashing
@@ -58,13 +58,13 @@ const loginUser = asyncWrapper(async (req, res) => {
   // validation
   const error = userLoginValidation(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res.status(400).json({ msg: error.details[0].message });
   }
 
   //checking if email already exist
   const loggedInUser = await User.model.findOne({ email: req.body.email });
   if (!loggedInUser) {
-    return res.status(403).json({ error: "-Email- or password is wrong" });
+    return res.status(403).json({ msg: "-Email- or password is wrong" });
   }
   //cheking if password is correct
   const validPass = await bcrypt.compare(
@@ -72,7 +72,7 @@ const loginUser = asyncWrapper(async (req, res) => {
     loggedInUser.password
   );
   if (!validPass) {
-    return res.status(403).json({ error: "Email or -password- is wrong" });
+    return res.status(403).json({ msg: "Email or -password- is wrong" });
   }
 
   // create and assign token
@@ -108,7 +108,7 @@ const getUser = asyncWrapper(async (req, res) => {
   const _id = req.params.id;
   const user = await User.model.findOne({ _id });
   if (!user) {
-    return res.status(404).json({ error: "No data matches the id : " + _id });
+    return res.status(404).json({ msg: "No data matches the id : " + _id });
   }
   res.status(200).json({ user: user });
 });
@@ -123,7 +123,7 @@ const updateUser = asyncWrapper(async (req, res) => {
     runValidators: true,
   });
   if (!user) {
-    return res.status(404).json({ error: "No data matches the id : " + _id });
+    return res.status(404).json({ msg: "No data matches the id : " + _id });
   }
   res.status(200).json({ user: user });
 });
@@ -134,7 +134,7 @@ const deleteUser = asyncWrapper(async (req, res) => {
   const _id = req.params.id;
   const user = await User.model.deleteOne({ _id });
   if (!user) {
-    return res.status(404).json({ error: "No data matches the id : " + _id });
+    return res.status(404).json({ msg: "No data matches the id : " + _id });
   }
   res
     .status(200)
