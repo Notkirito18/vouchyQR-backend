@@ -1,10 +1,10 @@
 {
   "name": "vqr",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon"
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "",

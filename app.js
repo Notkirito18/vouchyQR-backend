@@ -49,10 +49,10 @@ app.use("/contact", authorize, contact);
 
 // serving the frontend
 //TODO serve frontend app when deploying
-// app.use(express.static(path.join(__dirname, "public")));
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "public/index.html"));
-// });
+app.use(express.static(path.join(__dirname, "public")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+});
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);
