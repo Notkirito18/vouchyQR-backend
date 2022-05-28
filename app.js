@@ -42,6 +42,8 @@ app.use(express.json());
 app.use("/auth", authorize, auth);
 app.use("/api/users", authorize, users);
 app.use("/api/guests", authorize, verifyToken, userIdVerify, guests);
+//*for guest page (not login needed)
+app.use("/api/guest", authorize, guests);
 app.use("/api/records", authorize, verifyToken, userIdVerify, records);
 app.use("/contact", authorize, contact);
 

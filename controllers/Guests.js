@@ -3,6 +3,7 @@ const Guest = require("../models/Guest");
 const asyncWrapper = require("../middleware/async");
 const { guestValidation } = require("../validation");
 const { json } = require("express");
+const Record = require("../models/Record");
 
 //* getting all the data operation
 
@@ -45,18 +46,21 @@ const createGuest = asyncWrapper(async (req, res) => {
 
 //* getting singel item in database operation
 const getGuest = asyncWrapper(async (req, res) => {
-  // getting userId
-  const userId = req.header("userDataId");
-
   //getting guest
   const _id = req.params.id;
   const guest = await Guest.model.findOne({ _id });
-  // guest with _id doesn't exist or it exist but belongs to different user
-  if (!guest || guest.userDataId != userId)
+  // guest with _id doesn't exist
+  if (!guest)
     return res.status(400).json({ error: "No data matches the id : " + _id });
+  // getting the guest's records
+  const records = await Record.model.find({});
+  if (!records) {
+    return res.status(400).json({ error: "error occured" });
+  }
+  const guestRecords = records.filter((item) => item.guestId == _id);
 
   // response
-  res.status(200).json({ guest: guest });
+  res.status(200).json({ guest: guest, records: guestRecords });
 });
 
 //* updating singel item in database operation

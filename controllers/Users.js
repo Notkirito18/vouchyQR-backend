@@ -89,6 +89,7 @@ const loginUser = asyncWrapper(async (req, res) => {
     _id: loggedInUser._id,
     admin: loggedInUser.admin,
     userDataId: loggedInUser.userDataId,
+    username: loggedInUser.username,
   });
 });
 
