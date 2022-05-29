@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 
 // routes import
 const guests = require("./routes/guests");
+const unvalidateExpired = require("./routes/unvalidateExpired");
 const users = require("./routes/users");
 const auth = require("./routes/auth");
 const records = require("./routes/records");
@@ -38,17 +39,22 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 // routes
-
+//*authentication routes (register and login)
 app.use("/auth", authorize, auth);
+//*users crud routes
 app.use("/api/users", authorize, users);
+//*guests crud routes
 app.use("/api/guests", authorize, verifyToken, userIdVerify, guests);
+//*records crud routes
+app.use("/api/records", authorize, verifyToken, userIdVerify, records);
+//*contact (sends an email from a post request)
+app.use("/contact", authorize, contact);
 //*for guest page (not login needed)
 app.use("/api/guest", authorize, guests);
-app.use("/api/records", authorize, verifyToken, userIdVerify, records);
-app.use("/contact", authorize, contact);
+//* unvalidating expired vouchers
+app.use("/api/unvalidateExpired", authorize, unvalidateExpired);
 
 // serving the frontend
-//TODO serve frontend app when deploying
 app.use(express.static(path.join(__dirname, "public")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));

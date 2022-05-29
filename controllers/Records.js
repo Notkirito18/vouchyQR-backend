@@ -30,7 +30,7 @@ const createRecord = asyncWrapper(async (req, res) => {
   //validation
   const error = recordValidation(record);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res.status(400).json({ msg: error.details[0].message });
   }
   //creating the record and responding
   const recordCreated = await Record.model.create(record);
@@ -47,7 +47,7 @@ const getRecord = asyncWrapper(async (req, res) => {
   const record = await Record.model.findOne({ _id });
   // record with _id doesn't exist or it exist but belongs to different user
   if (!record || record.userDataId != userId)
-    return res.status(400).json({ error: "No data matches the id : " + _id });
+    return res.status(400).json({ msg: "No data matches the id : " + _id });
 
   // response
   res.status(200).json({ record: record });
@@ -63,14 +63,14 @@ const updateRecord = asyncWrapper(async (req, res) => {
   const record = await Record.model.findOne({ _id });
   // record with _id doesn't exist or it exist but belongs to different user
   if (!record || record.userDataId != userDataId)
-    return res.status(400).json({ error: "No data matches the id : " + _id });
+    return res.status(400).json({ msg: "No data matches the id : " + _id });
 
   //validating newRecord data
   const newRecord = new Record.model({ ...req.body, _id });
   newRecord.userDataId = userDataId;
   const error = recordValidation(newRecord);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res.status(400).json({ msg: error.details[0].message });
   }
 
   // updating the record and responding
@@ -85,7 +85,7 @@ const updateRecord = asyncWrapper(async (req, res) => {
   if (recordUpdated) {
     res.status(200).json({ record: recordUpdated });
   } else {
-    return res.status(424).json({ error: "record was not updated" });
+    return res.status(424).json({ msg: "record was not updated" });
   }
 });
 
@@ -99,7 +99,7 @@ const deleteRecord = asyncWrapper(async (req, res) => {
   const record = await Record.model.findOne({ _id });
   // record with _id doesn't exist or it exist but belongs to different user
   if (!record || record.userDataId != userId)
-    return res.status(400).json({ error: "No data matches the id : " + _id });
+    return res.status(400).json({ msg: "No data matches the id : " + _id });
 
   //deleting and responding
   const recordDelete = await Record.model.deleteOne({ _id });
@@ -108,7 +108,7 @@ const deleteRecord = asyncWrapper(async (req, res) => {
       .status(200)
       .json({ _id: _id, msg: "record with id " + _id + " was deleted" });
   } else {
-    return res.status(424).json({ error: "record was not deleted" });
+    return res.status(424).json({ msg: "record was not deleted" });
   }
 });
 const deleteManyRecords = asyncWrapper(async (req, res) => {

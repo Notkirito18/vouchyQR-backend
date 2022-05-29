@@ -36,7 +36,7 @@ const createGuest = asyncWrapper(async (req, res) => {
   //validation
   const error = guestValidation(guest);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res.status(400).json({ msg: error.details[0].message });
   }
 
   //creating the guest and responding
@@ -51,11 +51,11 @@ const getGuest = asyncWrapper(async (req, res) => {
   const guest = await Guest.model.findOne({ _id });
   // guest with _id doesn't exist
   if (!guest)
-    return res.status(400).json({ error: "No data matches the id : " + _id });
+    return res.status(400).json({ msg: "No data matches the id : " + _id });
   // getting the guest's records
   const records = await Record.model.find({});
   if (!records) {
-    return res.status(400).json({ error: "error occured" });
+    return res.status(400).json({ msg: "error occured" });
   }
   const guestRecords = records.filter((item) => item.guestId == _id);
 
@@ -73,7 +73,7 @@ const updateGuest = asyncWrapper(async (req, res) => {
   const guest = await Guest.model.findOne({ _id });
   // guest with _id doesn't exist or it exist but belongs to different user
   if (!guest || guest.userDataId != userDataId)
-    return res.status(400).json({ error: "No data matches the id : " + _id });
+    return res.status(400).json({ msg: "No data matches the id : " + _id });
 
   //validating newGuest data
   const newGuest = new Guest.model({ ...req.body, _id });
@@ -83,7 +83,7 @@ const updateGuest = asyncWrapper(async (req, res) => {
   }
   const error = guestValidation(newGuest);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res.status(400).json({ msg: error.details[0].message });
   }
 
   // updating the guest and responding
@@ -94,7 +94,7 @@ const updateGuest = asyncWrapper(async (req, res) => {
   if (guestUpdated) {
     res.status(200).json({ guest: guestUpdated });
   } else {
-    return res.status(424).json({ error: "guest was not updated" });
+    return res.status(424).json({ msg: "guest was not updated" });
   }
 });
 
@@ -108,7 +108,7 @@ const deleteGuest = asyncWrapper(async (req, res) => {
   const guest = await Guest.model.findOne({ _id });
   // guest with _id doesn't exist or it exist but belongs to different user
   if (!guest || guest.userDataId != userId)
-    return res.status(400).json({ error: "No data matches the id : " + _id });
+    return res.status(400).json({ msg: "No data matches the id : " + _id });
 
   //deleting and responding
   const guestDelete = await Guest.model.deleteOne({ _id });
@@ -117,7 +117,32 @@ const deleteGuest = asyncWrapper(async (req, res) => {
       .status(200)
       .json({ _id: _id, msg: "guest with id " + _id + " was deleted" });
   } else {
-    return res.status(424).json({ error: "guest was not deleted" });
+    return res.status(424).json({ msg: "guest was not deleted" });
+  }
+});
+
+//* unvalidating expired vouchers
+const unvalidateExpiredVouchers = asyncWrapper(async (req, res) => {
+  // getting ids of expired voucheres
+  const ids = req.body;
+  const guestsUpdated = await Guest.model.updateMany(
+    {
+      _id: {
+        $in: ids,
+      },
+    },
+    { $set: { "vouchersLis.$[].unvalid": true } },
+    {
+      multi: true,
+    }
+  );
+
+  if (guestsUpdated) {
+    res
+      .status(200)
+      .json({ guests: guestsUpdated, expiredVouchersDeleted: true });
+  } else {
+    return res.status(424).json({ msg: "guests were not updated" });
   }
 });
 
@@ -127,4 +152,5 @@ module.exports = {
   getGuest,
   updateGuest,
   deleteGuest,
+  unvalidateExpiredVouchers,
 };
