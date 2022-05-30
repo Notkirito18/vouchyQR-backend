@@ -3,6 +3,6 @@ const router = express.Router();
 
 const { unvalidateExpiredVouchers } = require("../controllers/Guests");
 
-router.route("/").patch(unvalidateExpiredVouchers);
+router.route("/").get(unvalidateExpiredVouchers);
 
 module.exports = router;

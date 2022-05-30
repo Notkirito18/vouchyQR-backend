@@ -4,7 +4,7 @@ Joi.objectId = require("joi-objectid")(Joi);
 //* user validation to used when registering
 const userValidation = (user) => {
   const schema = Joi.object({
-    username: Joi.string().alphanum().min(3).max(30).required(),
+    username: Joi.string().min(3).max(30).required(),
     email: Joi.string().required().email({ minDomainSegments: 2 }),
     password: Joi.string()
       .required()

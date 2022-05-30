@@ -124,23 +124,37 @@ const deleteGuest = asyncWrapper(async (req, res) => {
 //* unvalidating expired vouchers
 const unvalidateExpiredVouchers = asyncWrapper(async (req, res) => {
   // getting ids of expired voucheres
-  const ids = req.body;
-  const guestsUpdated = await Guest.model.updateMany(
-    {
-      _id: {
-        $in: ids,
+  let ids = [];
+  const guests = await Guest.model.find({});
+  if (guests) {
+    guests.forEach((element) => {
+      const newDate = new Date();
+      const expireDate = new Date(element.validUntill);
+      if (newDate.getTime() > expireDate.getTime()) {
+        ids.push(element._id);
+      }
+    });
+    //updating data
+    const guestsUpdated = await Guest.model.updateMany(
+      {
+        _id: {
+          $in: ids,
+        },
       },
-    },
-    { $set: { "vouchersLis.$[].unvalid": true } },
-    {
-      multi: true,
-    }
-  );
+      { $set: { "vouchersLis.$[].unvalid": true } },
+      {
+        multi: true,
+      }
+    );
 
-  if (guestsUpdated) {
-    res
-      .status(200)
-      .json({ guests: guestsUpdated, expiredVouchersDeleted: true });
+    if (guestsUpdated) {
+      res.status(200).json({
+        guestsUpdated: guestsUpdated.nModified,
+        expiredVouchersDeleted: true,
+      });
+    } else {
+      return res.status(424).json({ msg: "guests were not updated" });
+    }
   } else {
     return res.status(424).json({ msg: "guests were not updated" });
   }
